@@ -520,8 +520,20 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com/' . trim(wpro_get_option('wpro-folder'))), '/');
 			}
 		}
-		$data['path'] = $this->upload_basedir . $data['subdir'];
-		$data['url'] = $data['baseurl'] . $data['subdir'];
+		//see wp-includes/functions.php [
+		$ms_dir = '';
+		if ( is_multisite() && ! ( is_main_network() && is_main_site() && defined( 'MULTISITE' ) ) ) {
+			if ( ! get_site_option( 'ms_files_rewriting' ) ) {
+				if ( defined( 'MULTISITE' ) )
+					$ms_dir = '/sites/' . get_current_blog_id();
+				else
+					$ms_dir = '/' . get_current_blog_id();
+			} elseif ( defined( 'UPLOADS' ) && ! ms_is_switched() ) {
+				//??
+			}
+		}
+		$data['path'] = $this->upload_basedir . $ms_dir . $data['subdir'];
+		$data['url'] = $data['baseurl'] . $ms_dir . $data['subdir'];
 		$this->removeTemporaryLocalData($data['path']);
 //		$this->debug('-> RETURNS = ');
 //		$this->debug(print_r($data, true));
