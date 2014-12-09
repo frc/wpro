@@ -525,7 +525,11 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 			if (wpro_get_option('wpro-aws-virthost')) {
 				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
 			} else {
-				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com'), '/');
+				if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] !== 'off')) {
+					$data['baseurl'] = 'https://s3.amazonaws.com/' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
+				} else {
+					$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com'), '/');
+				}
 			}
 		}
 		// Append the appropriate wpro-folder to baseurl
