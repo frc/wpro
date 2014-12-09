@@ -26,6 +26,12 @@ if ( !function_exists('sys_get_temp_dir')) {
 	}
 }
 
+if ( !function_exists('is_main_network')) {
+	function is_main_network() {
+		return true;
+	}
+}
+
 // open_basedir / safe_mode disallows CURLOPT_FOLLOWLOCATION
 function curl_exec_follow($ch, &$maxredirect = null) { 
     $mr = $maxredirect === null ? 5 : intval($maxredirect); 
@@ -509,28 +515,48 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 			while (is_dir($this->upload_basedir)) $this->upload_basedir = $this->tempdir . 'wpro' . time() . rand(0, 999999);
 		}
 		$data['basedir'] = $this->upload_basedir;
+		
+		// Begin building baseurl
 		switch (wpro_get_option('wpro-service')) {
 		case 'ftp':
-			$data['baseurl'] = '//' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-ftp-webroot'), '/') . '/' . trim(wpro_get_option('wpro-folder'))), '/');
+			$data['baseurl'] = '//' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-ftp-webroot'))), '/');
 			break;
 		default:
 			if (wpro_get_option('wpro-aws-virthost')) {
-				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '/' . trim(wpro_get_option('wpro-folder'))), '/');
+				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
 			} else {
-				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com/' . trim(wpro_get_option('wpro-folder'))), '/');
+				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com'), '/');
 			}
 		}
+		// Append the appropriate wpro-folder to baseurl
 		//see wp-includes/functions.php [
-		if ( is_multisite() && ! ( function_exists('is_main_network') && is_main_network() && is_main_site() && defined( 'MULTISITE' ) ) ) {
+		if ( is_multisite() && ! ( is_main_network() && is_main_site() && defined( 'MULTISITE' ) ) ) {
 			if ( ! get_site_option( 'ms_files_rewriting' ) ) {
+				$data['baseurl'] .= '/' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-folder'))), '/');
 				if ( defined( 'MULTISITE' ) )
 					$ms_dir = '/sites/' . get_current_blog_id();
 				else
 					$ms_dir = '/' . get_current_blog_id();
 			} elseif ( defined( 'UPLOADS' ) && ! ms_is_switched() ) {
-				//??
+				/*error_log('WPRO: defined("UPLOADS") && ! ms_is_switched():' .
+					'  get_current_blog_id() = ' . get_current_blog_id() .
+					', oldbaseurl = ' . $oldbaseurl .
+					', oldbasedir = ' . $oldbasedir .
+					', oldpath = ' . $data['path'] .
+					', oldurl = ' . $data['url'] .
+					', $data[\'baseurl\'] = ' . $data['baseurl'] .
+					', $data[\'basedir\'] = ' . $data['basedir'] .
+					', $data[\'subdir\'] = ' . $data['subdir'] .
+					', $data[\'path\'] = ' . $this->upload_basedir . $data['subdir'] .
+					', $data[\'url\'] = ' . $data['baseurl'] . $data['subdir'] );
+				*/
+				// Handle the old-form ms-files.php rewriting if the network still has that enabled.
+				$data['baseurl'] .= '/' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-blogsfolder', 'wp-content/blogs.dir'))), '/');
+				$ms_dir = '/' . get_current_blog_id() . '/files';
 			}
 			$data['baseurl'] .= $ms_dir;
+		} else {
+			$data['baseurl'] .= '/' . str_replace('//', '/', trim(wpro_get_option('wpro-folder'))) . '/';
 		}
 		$data['path'] = $this->upload_basedir . $data['subdir'];
 		$data['url'] = $data['baseurl'] . $data['subdir'];
