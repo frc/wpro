@@ -523,13 +523,15 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 			break;
 		default:
 			if (wpro_get_option('wpro-aws-virthost')) {
+				// Use Virtual Hosted-Style with CNAME
 				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
+			} else if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] !== 'off')) {
+				// Force Path-Style when using SSL, otherwise user will get a certificate error if the 
+				// bucket contains periods. (i.e. S3's certificate won't match www.mydomain.com.s3.amazonaws.com)
+				$data['baseurl'] = '//s3.amazonaws.com/' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
 			} else {
-				if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] !== 'off')) {
-					$data['baseurl'] = 'https://s3.amazonaws.com/' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
-				} else {
-					$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com'), '/');
-				}
+				// Use Virtual Hosted-Style without CNAME
+				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com'), '/');
 			}
 		}
 		// Append the appropriate wpro-folder to baseurl
