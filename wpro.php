@@ -26,8 +26,17 @@ if ( !function_exists('sys_get_temp_dir')) {
 	}
 }
 
+// WP < 3.5 compatibility
 if ( !function_exists('is_main_network')) {
 	function is_main_network() {
+		return true;
+	}
+}
+
+// WP < 3.2 compatibility
+if ( !function_exists('ms_is_switched')) {
+	define('USEBLOGSDIR', true);
+	function ms_is_switched() {
 		return true;
 	}
 }
@@ -537,7 +546,7 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 		// Append the appropriate wpro-folder to baseurl
 		//see wp-includes/functions.php [
 		if ( is_multisite() && ! ( is_main_network() && is_main_site() && defined( 'MULTISITE' ) ) ) {
-			if ( ! get_site_option( 'ms_files_rewriting' ) ) {
+			if ( ! defined('USEBLOGSDIR') && ! get_site_option( 'ms_files_rewriting' ) ) {
 				$data['baseurl'] .= '/' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-folder'))), '/');
 				if ( defined( 'MULTISITE' ) )
 					$ms_dir = '/sites/' . get_current_blog_id();
@@ -550,7 +559,7 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 			}
 			$data['baseurl'] .= $ms_dir;
 		} else {
-			$data['baseurl'] .= '/' . str_replace('//', '/', trim(wpro_get_option('wpro-folder'))) . '/';
+			$data['baseurl'] .= '/' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-folder'))), '/');
 		}
 		$data['path'] = $this->upload_basedir . $data['subdir'];
 		$data['url'] = $data['baseurl'] . $data['subdir'];
