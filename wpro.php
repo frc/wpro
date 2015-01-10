@@ -199,6 +199,10 @@ class WordpressReadOnlyS3 extends WordpressReadOnlyBackend {
 		if (!preg_match('/^\/\/([^\/]+)\/(.*)$/', $fullurl, $regs)) return false;
 		$url = $regs[2];
 
+		if (preg_match('/^' . str_replace('.', '\\.', str_replace('/', '\/', trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/'))) . '\/(.*)$/', $url, $regs)) {
+				$url = $regs[1];
+		}
+		
 		if (!file_exists($file)) return false;
 		$this->removeTemporaryLocalData($file);
 
