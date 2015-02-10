@@ -1,11 +1,11 @@
 <?php
 /**
 Plugin Name: WP Read-Only
-Plugin URI: http://wordpress.org/extend/plugins/wpro/
+Plugin URI: https://github.com/parleer/wpro
 Description: Plugin for running your Wordpress site without Write Access to the web directory. Amazon S3 is used for uploads/binary storage. This plugin was made with cluster/load balancing server setups in mind - where you do not want your WordPress to write anything to the local web directory.
-Version: 1.0
-Author: alfreddatakillen
-Author URI: http://nurd.nu/
+Version: 1.1
+Author: parleer, alfreddatakillen
+Author URI: https://github.com/parleer
 License: GPLv2
  */
 
@@ -23,6 +23,21 @@ if ( !function_exists('sys_get_temp_dir')) {
 			return dirname($temp);
 		}
 		return null;
+	}
+}
+
+// WP < 3.5 compatibility
+if ( !function_exists('is_main_network')) {
+	function is_main_network() {
+		return true;
+	}
+}
+
+// WP < 3.2 compatibility
+if ( !function_exists('ms_is_switched')) {
+	define('USEBLOGSDIR', true);
+	function ms_is_switched() {
+		return true;
 	}
 }
 
@@ -184,6 +199,10 @@ class WordpressReadOnlyS3 extends WordpressReadOnlyBackend {
 		if (!preg_match('/^\/\/([^\/]+)\/(.*)$/', $fullurl, $regs)) return false;
 		$url = $regs[2];
 
+		if (preg_match('/^' . str_replace('.', '\\.', str_replace('/', '\/', trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/'))) . '\/(.*)$/', $url, $regs)) {
+				$url = $regs[1];
+		}
+		
 		if (!file_exists($file)) return false;
 		$this->removeTemporaryLocalData($file);
 
@@ -509,16 +528,42 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 			while (is_dir($this->upload_basedir)) $this->upload_basedir = $this->tempdir . 'wpro' . time() . rand(0, 999999);
 		}
 		$data['basedir'] = $this->upload_basedir;
+		
+		// Begin building baseurl
 		switch (wpro_get_option('wpro-service')) {
 		case 'ftp':
-			$data['baseurl'] = '//' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-ftp-webroot'), '/') . '/' . trim(wpro_get_option('wpro-folder'))), '/');
+			$data['baseurl'] = '//' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-ftp-webroot'))), '/');
 			break;
 		default:
 			if (wpro_get_option('wpro-aws-virthost')) {
-				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '/' . trim(wpro_get_option('wpro-folder'))), '/');
+				// Use Virtual Hosted-Style with CNAME
+				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-virthost')), '/');
+			} else if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] !== 'off')) {
+				// Force Path-Style when using SSL, otherwise user will get a certificate error if the 
+				// bucket contains periods. (i.e. S3's certificate won't match www.mydomain.com.s3.amazonaws.com)
+				$data['baseurl'] = '//s3.amazonaws.com/' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
 			} else {
-				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com/' . trim(wpro_get_option('wpro-folder'))), '/');
+				// Use Virtual Hosted-Style without CNAME
+				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com'), '/');
 			}
+		}
+		// Append the appropriate wpro-folder to baseurl
+		//see wp-includes/functions.php [
+		if ( is_multisite() && ! ( is_main_network() && is_main_site() && defined( 'MULTISITE' ) ) ) {
+			if ( ! defined('USEBLOGSDIR') && ! get_site_option( 'ms_files_rewriting' ) ) {
+				$data['baseurl'] .= '/' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-folder'))), '/');
+				if ( defined( 'MULTISITE' ) )
+					$ms_dir = '/sites/' . get_current_blog_id();
+				else
+					$ms_dir = '/' . get_current_blog_id();
+			} elseif ( defined( 'UPLOADS' ) && ! ms_is_switched() ) {
+				// Handle the old-form ms-files.php rewriting if the network still has that enabled.
+				$data['baseurl'] .= '/' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-blogsfolder', 'wp-content/blogs.dir'))), '/');
+				$ms_dir = '/' . get_current_blog_id() . '/files';
+			}
+			$data['baseurl'] .= $ms_dir;
+		} else {
+			$data['baseurl'] .= '/' . trim(str_replace('//', '/', trim(wpro_get_option('wpro-folder'))), '/');
 		}
 		$data['path'] = $this->upload_basedir . $data['subdir'];
 		$data['url'] = $data['baseurl'] . $data['subdir'];
