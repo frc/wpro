@@ -732,6 +732,14 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 		$upload = wp_upload_dir();
 
 		$name = $file['name'];
+		
+		// If a filename extension exists, lower it.
+		if (preg_match('/\.([^\.\/]+)$/', $file['name'], $regs)) {
+				$ending = '.' . $regs[1];
+				$preending = substr($file['name'], 0, 0 - strlen($ending));
+				$name = $preending . strtolower($ending);
+		}
+		
 		$path = trim($upload['url'], '/') . '/' . $name;
 
 		$counter = 0;
@@ -739,7 +747,7 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 			if (preg_match('/\.([^\.\/]+)$/', $file['name'], $regs)) {
 				$ending = '.' . $regs[1];
 				$preending = substr($file['name'], 0, 0 - strlen($ending));
-				$name = $preending . '_' . $counter . $ending;
+				$name = $preending . '_' . $counter . strtolower($ending);
 			} else {
 				$name = $file['name'] . '_' . $counter;
 			}
