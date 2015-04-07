@@ -1,10 +1,10 @@
 <?php
 /**
-Plugin Name: WP Read-Only
-Plugin URI: https://github.com/parleer/wpro
+Plugin Name: WP S3
+Plugin URI: https://github.com/parleer/wp-s3
 Description: Plugin for running your Wordpress site without Write Access to the web directory. Amazon S3 is used for uploads/binary storage. This plugin was made with cluster/load balancing server setups in mind - where you do not want your WordPress to write anything to the local web directory.
-Version: 1.1
-Author: parleer, alfreddatakillen
+Version: 1.2
+Author: parleer
 Author URI: https://github.com/parleer
 License: GPLv2
  */

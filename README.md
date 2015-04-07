@@ -1,11 +1,19 @@
-=== WP Read-Only ===
+=== WP S3 ===
 
-* Contributors: alfreddatakillen
+* Contributors: parleer
 * Tags: wordpress, amazon, s3, readonly
 * Requires at least: 3.3
-* Tested up to: 3.3.1
-* Stable tag: 1.0
+* Tested up to: 4.2
+* Stable tag: 1.2
 * License: GPLv2
+
+
+This plugin was modified from work frc's modified wpro plugin, which was 
+forked from alfreddatakillen. I've renamed the plugin to WP S3 because 
+I have no intention of supporting other distributed file systems, and 
+because alfreddatakillen has now rewritten his wpro plugin to be much 
+more generic.
+
 
 Plugin for running your Wordpress site without Write Access to the
 web directory. Amazon S3 is used for uploads/binary storage.
