@@ -1,6 +1,6 @@
-=== WP S3 ===
+# WP S3 
 
-* Contributors: parleer
+* Contributors: parleer, frc, alfreddatakillen
 * Tags: wordpress, amazon, s3, readonly
 * Requires at least: 3.3
 * Tested up to: 4.2
@@ -21,7 +21,7 @@ This plugin was made with cluster/load balancing server setups in
 mind - where you do not want your WordPress to write anything to
 the local web directory.
 
-== Description ==
+## Description 
 
 This plugin will put your media uploads on Amazon S3. Unlike other
 S3 plugins, this plugin does not require your uploads to first be
@@ -40,20 +40,20 @@ Note: You still need write access to the system /tmp directory for
 this plugin to work. It will use the system /tmp directory for
 temporary storage during uploads, image editing/scaling, etc.
 
-= Wordpress MU/Multisite =
+## Wordpress MU/Multisite
 
 This plugin works out-of-the box with Wordpress Multisite/MU.
 
 You will find the settings for this plugin in the Network Admin, when
 in a MU/Multisite environment.
 
-== Installation ==
+## Installation 
 
 1. Put the plugin in the Wordpress `/wp-content/plugins/` directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
 3. Enter your Amazon S3 settings in `Settings` > `WPRO Settings`.
 
-= Alternative: Configure by constants in wp-config.php =
+### Alternative: Configure by constants in wp-config.php
 
 Instead of configuring the plugin in `Settings` > `WPRO Settings`,
 you may use constants in your `wp-config.php`. This might be an
@@ -89,42 +89,42 @@ Those are the AWS endpoints:
 *	`s3-ap-northeast-1.amazonaws.com` - Asia Pacific (Tokyo) Region
 *	`s3-sa-east-1.amazonaws.com` - South America (Sao Paulo) Region
 
-== Frequently Asked Questions ==
+## Frequently Asked Questions 
 
-= Will this plugin work in Wordpress MU/Multisite environments? =
+### Will this plugin work in Wordpress MU/Multisite environments? 
 
 Yes.
 
-= Where do I report bugs? = 
+### Where do I report bugs? 
 
 Report any issues at the github issue tracker:
-https://github.com/alfreddatakillen/wpro/issues
+https://github.com/parleer/wp-s3/issues
 
-= Where do I contribute with code, bug fixes, etc.? =
+### Where do I contribute with code, bug fixes, etc.? 
 
 At github:
-https://github.com/alfreddatakillen/wpro
+https://github.com/parleer/wp-s3
 
-And, plz, use tabs for indenting! :)
-
-= What should I think of when digging the code? =
+### What should I think of when digging the code?
 
 If you define the constant WPRO_DEBUG in your wp-config.php, then
 some debug data will be written to /tmp/wpro-debug
 
-= What about the license? =
+### What about the license?
 
 Read more about GPLv2 here:
 http://www.gnu.org/licenses/gpl-2.0.html
 
-= Do you like beer? =
 
-If we meet some day, and you think this stuff is worth it, you may buy
-me a beer in return. (GPLv2 still applies.)
+## Changelog 
 
-== Changelog ==
+### 1.2
 
-= 1.1 =
+*	Fixed bugs for WordPress MU deployment
+*	Added support for older WP, I think down to 2.9
+
+
+### 1.1 
 
 *	Added support for configuring by constants in `wp-config.php`.
 *	Plugin now works in open_basedir and safe_mode environments.
@@ -139,18 +139,7 @@ for contributing with code! Also, thanks to
 [mavesell](https://github.com/maveseli "mavesell")
 and [nmagee](https://github.com/nmagee "nmagee") for feedback and comments!
 
-= 1.0 =
+### 1.0 
 
 *	The first public release.
 
-== Roadmap ==
-
-Todo list:
-
-*	Add support for FTP:ing uploads to somewhere, as an alternative to
-	Amazon S3.
-*	For WPMU: Store media in a single bucket, but separate them by site, in
-	sub-folders.
-*	Only handle `new` medias when activating this plugin on an existing
-	site. Today it's an all-or-nothing approach, and you will have to
-	migrate your media to S3.
