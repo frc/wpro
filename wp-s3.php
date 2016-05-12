@@ -225,6 +225,7 @@ class WordpressReadOnlyS3 extends WordpressReadOnlyBackend {
 		$query = "PUT /" . $this->bucket . "/" . $url . " HTTP/1.1\n";
 		$query .= "Host: " . $this->endpoint . "\n";
 		$query .= "x-amz-acl: public-read\n";
+		$query .= "Cache-Control: max-age=86400\n";
 		$query .= "Connection: keep-alive\n";
 		$query .= "Content-Type: " . $mime . "\n";
 		$query .= "Content-Length: " . filesize($file) . "\n";
@@ -545,7 +546,9 @@ class WordpressReadOnly extends WordpressReadOnlyGeneric {
 				$data['baseurl'] = '//s3.amazonaws.com/' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
 			} else {
 				// Use Virtual Hosted-Style without CNAME
-				$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com'), '/');
+		//RYAN: Use the same Path-Style to be compatible with the broken dynamic-featured-image plugin.
+				//$data['baseurl'] = '//' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket') . '.s3.amazonaws.com'), '/');
+				$data['baseurl'] = '//s3.amazonaws.com/' . trim(str_replace('//', '/', wpro_get_option('wpro-aws-bucket')), '/');
 			}
 		}
 		// Append the appropriate wpro-folder to baseurl
